@@ -10,24 +10,25 @@
 (define LABERINTO (bitmap "laberinto.png"))
 (define FANTASMA (bitmap "fantasma.png"))
 ;(define JUGADOR (bitmap "dorita.png"))
-(define JUGADOR (circle 10 "solid" "red"))
-(define OBJETIVO (circle 10 "solid" "yellow"))
+(define JUGADOR (circle 10 "solid" "gray"))
+(define OBJETIVO (circle 10 "solid" "blue"))
 (define ALTO (image-height LABERINTO))
 (define ANCHO (image-width LABERINTO))
 (define CENTRO (make-posn (/ ANCHO 2) (/ ALTO 2)))
 (define TIEMPO-INICIAL 1500)
 (define POS-INICIAL (make-posn 15 35))
 (define POS-OBJETIVO (make-posn 930 460))
+(define POS-TIEMPO (make-posn (- ANCHO 50) (- ALTO 8)))
 (define VIDAS-INICIAL 3)
 (define COLOR-INICIAL "white")
-(define TEXTO-FUENTE 30)
+(define TEXTO-FUENTE 72)
 (define TEXTO-COLOR "black")
-(define DELTA 15)
+(define DELTA 5)
 
 ;; Estado global del programa:
 ;; ==========================
 ; state se compone de dos posn: las posiciones en pantalla del jugador y el enemigo respectivamente, y de un int que representa la cant. de ticks desde que comenzó el juego.
- (define-struct estado [jugador fantasma vidas tiempo color])
+ (define-struct estado [jugador fantasma vidas tiempo])
 
 
 
@@ -60,8 +61,8 @@
 ;; dibujar-objetivo : Imagen -> Imagen
 (define (dibujar-objetivo fondo) (dibujar-imagen OBJETIVO POS-OBJETIVO fondo))
 
-;; dibujar-timer : Estado Imagen -> Imagen
-(define (dibujar-timer e fondo) ())
+;; dibujar-tiempo : Estado Imagen -> Imagen
+(define (dibujar-tiempo e fondo) (dibujar-imagen (text (string-append "Tiempo: " (number->string (estado-tiempo e))) 16 "indigo") POS-TIEMPO fondo))
 
 ;; dibujar-vidas : Estado Imagen -> Imagen
 ;; ..................................
@@ -76,16 +77,23 @@
 (define (fondo color) (empty-scene ANCHO ALTO color))
 
 ;; imprimir : Estado Color -> Imagen
-;; ..................................
+(define (imprimir e color)
+    (dibujar-tiempo
+        e
+        (dibujar-jugador
+            e
+            (dibujar-objetivo
+                (dibujar-laberinto
+                    (fondo
+                    color))))))
 
 ;; grafica : Estado -> Imagen
 (define (grafica e)
-  (dibujar-jugador
-     e
-     (dibujar-objetivo
-       (dibujar-laberinto
-         (fondo
-           (estado-color e))))))
+  (cond
+    [(objetivo? e) (dibujar-texto "GANASTE!" (imprimir e "gold") )]
+    [(fin? e) (dibujar-texto "PERDISTE!" (imprimir e "purple") )]
+    [(< (estado-tiempo e) 500) (imprimir e "red")]
+    [else (imprimir e COLOR-INICIAL)]))
      
 
 ;; Mover objetos:
@@ -135,8 +143,6 @@
 ;; Otros handlers:
 ;; ==============
 
-(define (nuevapos p) (make-posn (+ 1 (posn-x p) ) (posn-y p)))
-
 ;; manejador-tick : Estado -> Estado
 (define (manejador-tick e) (actualizar-tiempo (- (estado-tiempo e) 1) e))
 
@@ -149,11 +155,11 @@
 (define (objetivo? e) (interseca? (estado-jugador e) JUGADOR POS-OBJETIVO OBJETIVO))
 
 ;; fin? : Estado -> Boolean
-(define (fin? e ) (objetivo? e))
+(define (fin? e ) (or (objetivo? e) (<= (estado-tiempo e) 0)))
 
 
 ;; estado-inicial : Estado
-(define estado-inicial (make-estado POS-INICIAL POS-OBJETIVO VIDAS-INICIAL TIEMPO-INICIAL COLOR-INICIAL) ) 
+(define estado-inicial (make-estado POS-INICIAL POS-OBJETIVO VIDAS-INICIAL TIEMPO-INICIAL) ) 
 
 (big-bang estado-inicial
      [to-draw grafica]
