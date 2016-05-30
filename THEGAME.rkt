@@ -38,7 +38,7 @@
 
 
 ;; actualizar-tiempo : Number Estado -> Estado
-;devuelve un estado igual al que recibe, pero reemplazando el campo tiempo por el Number recibido
+;Devuelve un estado igual al que recibe, pero reemplazando el campo tiempo por el Number recibido.
 (define (actualizar-tiempo n e)
   (struct-copy estado e [tiempo n]))
 
@@ -47,7 +47,7 @@
 (check-expect (actualizar-tiempo -99 (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) ) (make-estado (make-posn 0 0) (make-posn 42 0) 999 -99) )
 
 ;; actualizar-vidas : Number Estado -> Estado
-;devuelve un estado igual al que recibe, pero reemplazando el campo vidas por el Number recibido
+;Devuelve un estado igual al que recibe, pero reemplazando el campo vidas por el Number recibido.
 (define (actualizar-vidas n e)
   (struct-copy estado e [vidas n]))
 
@@ -56,7 +56,7 @@
 (check-expect (actualizar-vidas -5 (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado (make-posn 10 10) (make-posn 23 20) -5 420 ) )
 
 ;; actualizar-fantasma : Posn Estado -> Estado
-;devuelve un estado igual al que recibe, pero reemplazando el campo fantasma por el posn recibido
+;Devuelve un estado igual al que recibe, pero reemplazando el campo fantasma por el posn recibido.
 (define (actualizar-fantasma n e)
   (struct-copy estado e [fantasma n]))
 
@@ -65,19 +65,19 @@
 (check-expect (actualizar-fantasma (make-posn 50 80) (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado (make-posn 10 10) (make-posn 50 80) 2 420 ) )
 
 ;; actualizar-jugador : Posn Estado -> Estado
-;devuelve un estado igual al que recibe, pero reemplazando el campo jugador por el posn recibido
+;Devuelve un estado igual al que recibe, pero reemplazando el campo jugador por el posn recibido.
 (define (actualizar-jugador p e)
   (struct-copy estado e [jugador p]))
 
-(check-expect (actualizar-tiempo POS-INICIAL (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado POS-INICIAL (make-posn 23 20) 2 420 ) )
-(check-expect (actualizar-tiempo POS-OBJETIVO (make-estado POS-TIEMPO POS-INICIAL 19 97) ) (make-estado POS-OBJETIVO POS-INICIAL 19 97) )
-(check-expect (actualizar-tiempo (make-posn 50 80) (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) ) (make-estado (make-posn 50 80) (make-posn 42 0) 999 0) )
+(check-expect (actualizar-jugador POS-INICIAL (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado POS-INICIAL (make-posn 23 20) 2 420 ) )
+(check-expect (actualizar-jugador POS-OBJETIVO (make-estado POS-TIEMPO POS-INICIAL 19 97) ) (make-estado POS-OBJETIVO POS-INICIAL 19 97) )
+(check-expect (actualizar-jugador (make-posn 50 80) (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) ) (make-estado (make-posn 50 80) (make-posn 42 0) 999 0) )
 
 
 ;; Imprimir en la pantalla:
 ;; =======================
 ;; dibujar-imagen : Imagen Posn Imagen -> Imagen
-;Recibe una imagen, una posición y una segunda imagen. Devuelve una imagen compuesta por la primera, colocada sobre la segunda en la posición elegida.
+; Toma una imagen, una posición y un fondo, y devuelve una imagen que se obtiene de dibujar la primara imagen sobre el fondo, en la posición indicada.
 (define (dibujar-imagen img pos fondo) (place-image img (posn-x pos) (posn-y pos) fondo ))
 
 (check-expect (dibujar-imagen (circle 10 "solid" "blue") (make-posn 10 10) (rectangle 20 20 "solid" "red")) (place-image (circle 10 "solid" "blue") 10 10 (rectangle 20 20 "solid" "red")))
@@ -86,7 +86,7 @@
 
 
 ;; dibujar-laberinto : Imagen -> Imagen
-;Dibuja el laberinto definido anteriormente como LABERINTO centrado sobre un fondo (un rectángulo vacío)
+; Toma un fondo y devuelve la imagen que se obtiene de dibujar el laberinto sobre el fondo.
 (define (dibujar-laberinto fondo) (dibujar-imagen LABERINTO CENTRO fondo))
 
 (check-expect (dibujar-laberinto (rectangle ANCHO ALTO "solid" "black")) (place-image LABERINTO (/ ANCHO 2) (/ ALTO 2) (rectangle ANCHO ALTO "solid" "black")))
@@ -94,15 +94,23 @@
 (check-expect (dibujar-laberinto FANTASMA) (place-image LABERINTO (posn-x CENTRO) (posn-y CENTRO) FANTASMA))
 
 ;; dibujar-jugador : Estado Imagen -> Imagen
-;dibuja al jugador sobre la imagen en su posición actual
+; Toma un estado y un fondo, y devuelve la imagen que se obtiene de dibujar al jugador sobre el fondo en su posición actual.
 (define (dibujar-jugador e fondo) (dibujar-imagen JUGADOR (estado-jugador e) fondo))
 
+(check-expect (dibujar-jugador (make-estado POS-TIEMPO POS-OBJETIVO 100 10) (rectangle ANCHO ALTO "solid" "black")) (place-image JUGADOR (posn-x POS-TIEMPO) (posn-y POS-TIEMPO) (rectangle ANCHO ALTO "solid" "black")))
+(check-expect (dibujar-jugador (make-estado POS-OBJETIVO (make-posn 10 10) 100 10) LABERINTO) (place-image JUGADOR (posn-x POS-OBJETIVO) (posn-y POS-OBJETIVO) LABERINTO))
+(check-expect (dibujar-jugador (make-estado (make-posn 15 25) (make-posn 12 13) 100 10) FANTASMA) (place-image JUGADOR 15 25 FANTASMA))
+
 ;; dibujar-objetivo : Imagen -> Imagen
-;dibuja el objetivo sobre la imagen en su posición
+; Toma un fondo y devuelve la imagen que se obtiene de dibujar el objetivo sobre el fondo en la posición predeterminada por POS-OBJETIVO.
 (define (dibujar-objetivo fondo) (dibujar-imagen OBJETIVO POS-OBJETIVO fondo))
 
+(check-expect (dibujar-laberinto (rectangle ANCHO ALTO "solid" "black")) (place-image LABERINTO (/ ANCHO 2) (/ ALTO 2) (rectangle ANCHO ALTO "solid" "black")))
+(check-expect (dibujar-laberinto (circle 1000 "solid" "blue")) (place-image LABERINTO (/ ANCHO 2) (/ ALTO 2) (circle 1000 "solid" "blue")) )
+(check-expect (dibujar-laberinto FANTASMA) (place-image LABERINTO (posn-x CENTRO) (posn-y CENTRO) FANTASMA))
+
 ;; dibujar-tiempo : Estado Imagen -> Imagen
-;dibuja el timer sobre la imagen
+; Toma un estado y un fondo y devuelve la imagen que se obtiene de dibujar el tiempo restante en ticks, sobre el fondo, en la posición predeterminada por POS-TIEMPO.
 (define (dibujar-tiempo e fondo) (dibujar-imagen (text (string-append "Tiempo: " (number->string (estado-tiempo e))) 16 "indigo") POS-TIEMPO fondo))
 
 ;; dibujar-vidas : Estado Imagen -> Imagen
@@ -110,18 +118,18 @@
 (define (dibujar-vidas e fondo) (dibujar-imagen (text (string-append "Vidas: " (number->string (estado-vidas e))) 16 "indigo") POS-VIDAS fondo) )
 
 ;; dibujar-texto : String Imagen -> Imagen
-;imprime el string recibido en el centro de la imagen
+; Toma un texto y un fondo y devuelve la imagen que se obtiene de imprimir el texto recibido centrado sobre el fondo.
 (define (dibujar-texto s fondo) (dibujar-imagen (text s TEXTO-FUENTE TEXTO-COLOR) CENTRO fondo))
 
 ;; dibujar-fantasma : Estado Imagen -> Imagen
 (define (dibujar-fantasma e fondo) (dibujar-imagen FANTASMA (estado-fantasma e) fondo) )
 
 ;; fondo : Color -> Imagen
-;crea un fondo con el color indicado
+; Toma un color y devuelve un fondo del color indicado.
 (define (fondo color) (empty-scene ANCHO ALTO color))
 
 ;; imprimir : Estado Color -> Imagen
-;dibuja los componentes del juego sobre un fondo del color indicado
+; Toma un estado y un color, y devuelve la imagen que se obtiene de dibujar los componentes del juego sobre un fondo del color indicado.
 (define (imprimir e color)
   (dibujar-vidas
    e
@@ -136,8 +144,15 @@
         (fondo
          color))))))))
 
-;; grafica : Estado -> Imagen
-;crea la imagen que se muestra en pantalla en base al estado actual del juego
+
+; grafica : Estado -> Imagen
+; Toma un estado y devuelve la imagen que se muestra en pantalla en base al estado actual del juego.
+; Las reglas para el color de fondo son las siguientes:
+; - Al inicio es blanco.
+; - Cuando quedan menos de 500 ticks es rojo.
+; - Cuando se pierde, es púrpura.
+; - Cuando se gana, es dorado.
+; Además, al lograr el objetivo, se imprime el mensaje "GANASTE!", y al perder: "GAME OVER!".
 (define (grafica e)
   (cond
     [(objetivo? e) (dibujar-texto "GANASTE!" (imprimir e "gold") )]
@@ -149,23 +164,27 @@
 ;; Mover objetos:
 ;; =============
 ;; move-up : Posn Number -> Posn
-;si es posible, mueve al jugador hacia arriba dist píxeles
+;Si es posible, mueve al jugador hacia arriba una cantidad de píxeles igual al número recibido.
 (define (move-up pos dist) (if (posible-pos? (make-posn (posn-x pos) (- (posn-y pos) dist)) JUGADOR) (make-posn (posn-x pos) (- (posn-y pos) dist)) pos))
 
 ;; move-down : Posn Number -> Posn
-;si es posible, mueve al jugador hacia abajo dist píxeles
+;Si es posible, mueve al jugador hacia abajo una cantidad de píxeles igual al número recibido.
 (define (move-down pos dist) (if (posible-pos? (make-posn (posn-x pos) (+ (posn-y pos) dist)) JUGADOR) (make-posn (posn-x pos) (+ (posn-y pos) dist)) pos))
 
 ;; move-left : Posn Number -> Posn
-;si es posible, mueve al jugador hacia la izquierda dist píxeles
+;Si es posible, mueve al jugador hacia la izquierda una cantidad de píxeles igual al número recibido.
 (define (move-left pos dist) (if (posible-pos? (make-posn (- (posn-x pos) dist) (posn-y pos)) JUGADOR) (make-posn (- (posn-x pos) dist) (posn-y pos)) pos))
 
 ;; move-right : Posn Number -> Posn
-;si es posible, mueve al jugador hacia la derecha dist píxeles
+;Si es posible, mueve al jugador hacia la derecha una cantidad de píxeles igual al número recibido.
 (define (move-right pos dist) (if (posible-pos? (make-posn (+ (posn-x pos) dist) (posn-y pos)) JUGADOR) (make-posn (+ (posn-x pos) dist) (posn-y pos)) pos))
 
 ;; mover-fantasma : Posn -> Posn
 (define (mover-fantasma pos) pos)
+
+;; reset-pos : Estado -> Estado
+;Devuelve al jugador y al fantasma a sus posiciones originales y le resta una vida al jugador.
+(define (reset-pos e) (make-estado POS-INICIAL POS-OBJETIVO (- (estado-vidas e) 1) (estado-tiempo e)))
 
 ;; Posiciones:
 ;; ==========
@@ -183,18 +202,18 @@
 (define (semialto img) (/ (image-height img) 2))
   
 ;; dentro-escena? : Posn Imagen -> Boolean
-;determina si una imagen está dentro de otra
+; Toma una posición y una imagen y devuelve #true si la imagen en dicha posición se encuentra dentro de la escena.
 (define (dentro-escena? pos img) (and (entre3? (semiancho img) (posn-x pos) (- ANCHO (semiancho img))) (entre3? (semialto img) (posn-y pos) (- ALTO (semialto img)))) )
 
 
 ;; posible-pos? : Posn Imagen -> Boolean
-;determina si una posición (pos) de una figura (de imagen img) es posible (si está en escena y no se interseca con las paredes del laberinto)
+; Toma una posición y una imagen y devuelve #true si la imagen en esa posición se encuentra dentro de la escena y no atravesando las paredes del laberinto, o #false en caso contrario.
 (define (posible-pos? pos img) (and (dentro-escena? pos img) (not (interseca? pos img CENTRO LABERINTO)) ) )
 
 ;; Eventos del teclado:
 ;; ===================
 ;; manejador-tecla : Estado Tecla -> Estado
-;mueve al jugador en la dirección deseada cuando éste presiona una flecha en el teclado (siempre y cuando esté permitido ese movimiento)
+; Toma un estado y un evento del teclado y devuelve otro estado donde se muevió al jugador en la dirección deseada si se ha presionado una flecha del teclado (siempre y cuando esté permitido dicho movimiento).
 (define (manejador-tecla e k) (cond
                                 [(key=? k "up") (actualizar-jugador (move-up (estado-jugador e) DELTA-PLAYER) e)]
                                 [(key=? k "down") (actualizar-jugador (move-down (estado-jugador e) DELTA-PLAYER) e)]
@@ -208,12 +227,14 @@
 ;; ==============
 
 ;; manejador-tick : Estado -> Estado
-;ejecuta las tres acciones que ocurren por tick: la actualización del tiempo, el movimiento del fantasma y la comprobación de si el fantasma atrapó al jugador
-(define (manejador-tick e) (actualizar-tiempo
-                            (- (estado-tiempo (actualizar-fantasma
-                                               (mover-fantasma (estado-fantasma
-                                                (if (interseca-fantasma? e) (actualizar-vidas (- (estado-vidas e) 1) e) e))) e))
-                                               1) e))
+; Toma un estado y devuelve otro, actualizando el tiempo restante en una unidad menos por cada tick.
+
+
+(define (manejador-tick e) (cond
+                             [(interseca-fantasma? e) (reset-pos e)]
+                             [else (actualizar-tiempo (- (estado-tiempo e ) 1) e)]
+                             )
+  )
 
 ;; Condiciones de Terminación:
 ;; ==========================
@@ -221,21 +242,23 @@
 ;comprueba si el fantasma atrapó al jugador (si se tocan)
 (define (interseca-fantasma? e) (interseca? (estado-jugador e) JUGADOR (estado-fantasma e) FANTASMA))
 
-(check-expect (interseca-fantasma? (make-estado POS-INICIAL POS-INICIAL 3 100)) #t)
+(check-expect (interseca-fantasma? (make-estado POS-INICIAL POS-INICIAL 3 1500)) #t)
 
 ;; objetivo? : Estado -> Boolean
-;comprueba si el jugador llegó al objetivo
+; Toma un estado y devuelve #true si el jugador llegó al objetivo y #false en caso contrario.
 (define (objetivo? e) (interseca? (estado-jugador e) JUGADOR POS-OBJETIVO OBJETIVO))
 
 
 ;; fin? : Estado -> Boolean
-;comprueba si el juego terminó: si el jugador alcanzó el objetivo, si se quedó sin vidas o si se quedó sin tiempo
+; Toma un estado y devuelve #true si el juego terminó y #false de otro modo.
+; El juego se considera terminado si se alcanzó el objetivo o se acabó el tiempo.
 (define (fin? e ) (or (objetivo? e) (<= (estado-tiempo e) 0) (= (estado-vidas e) 0)))
 
 
 ;; estado-inicial : Estado
 (define estado-inicial (make-estado POS-INICIAL POS-INICIAL VIDAS-INICIAL TIEMPO-INICIAL) ) 
 
+; Expresión big-bang: establece un estado incial, y asocia los tipos de eventos a sus manejadores, y lanza el programa.
 (big-bang estado-inicial
      [to-draw grafica]
      [on-key manejador-tecla]
