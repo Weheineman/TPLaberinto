@@ -25,7 +25,7 @@
 (define TEXTO-FUENTE 72) ;tamaño del texto de los mensajes
 (define TEXTO-COLOR "black") ;color del texto de los mensajes
 (define DELTA-PLAYER 10) ;cantidad de píxeles que se mueve el jugador por tick
-(define DELTA-FANTASMA 3) ;cantidad de píxeles que se mueve el fantasma por tick
+(define DELTA-FANTASMA 15) ;cantidad de píxeles que se mueve el fantasma por tick
 
 
 ;; Estado global del programa:
@@ -113,6 +113,10 @@
 ; Toma un estado y un fondo y devuelve la imagen que se obtiene de dibujar el tiempo restante en ticks, sobre el fondo, en la posición predeterminada por POS-TIEMPO.
 (define (dibujar-tiempo e fondo) (dibujar-imagen (text (string-append "Tiempo: " (number->string (estado-tiempo e))) 16 "indigo") POS-TIEMPO fondo))
 
+;(check-expect (dibujar-tiempo (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) LABERINTO) (place-image ) )
+;(check-expect (dibujar-tiempo (make-estado POS-TIEMPO POS-INICIAL 19 97) JUGADOR) (make-estado POS-TIEMPO POS-INICIAL 19 10) )
+;(check-expect (dibujar-tiempo (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) (circle 50 "solid" "red")) (make-estado (make-posn 0 0) (make-posn 42 0) 999 -99) )
+
 ;; dibujar-vidas : Estado Imagen -> Imagen
 ;dibuja la cantidad de vidas del jugador sobre la imagen
 (define (dibujar-vidas e fondo) (dibujar-imagen (text (string-append "Vidas: " (number->string (estado-vidas e))) 16 "indigo") POS-VIDAS fondo) )
@@ -121,8 +125,14 @@
 ; Toma un texto y un fondo y devuelve la imagen que se obtiene de imprimir el texto recibido centrado sobre el fondo.
 (define (dibujar-texto s fondo) (dibujar-imagen (text s TEXTO-FUENTE TEXTO-COLOR) CENTRO fondo))
 
+
 ;; dibujar-fantasma : Estado Imagen -> Imagen
 (define (dibujar-fantasma e fondo) (dibujar-imagen FANTASMA (estado-fantasma e) fondo) )
+
+(check-expect (dibujar-fantasma (make-estado POS-TIEMPO POS-OBJETIVO 100 10) (rectangle ANCHO ALTO "solid" "black")) (place-image FANTASMA (posn-x POS-OBJETIVO) (posn-y POS-OBJETIVO) (rectangle ANCHO ALTO "solid" "black")))
+(check-expect (dibujar-fantasma (make-estado POS-OBJETIVO (make-posn 10 10) 100 10) LABERINTO) (place-image FANTASMA 10 10 LABERINTO))
+(check-expect (dibujar-fantasma (make-estado (make-posn 15 25) (make-posn 12 13) 100 10) FANTASMA) (place-image FANTASMA 12 13 FANTASMA))
+
 
 ;; fondo : Color -> Imagen
 ; Toma un color y devuelve un fondo del color indicado.
@@ -180,7 +190,12 @@
 (define (move-right pos dist) (if (posible-pos? (make-posn (+ (posn-x pos) dist) (posn-y pos)) JUGADOR) (make-posn (+ (posn-x pos) dist) (posn-y pos)) pos))
 
 ;; mover-fantasma : Posn -> Posn
-(define (mover-fantasma pos) pos)
+;Mueve la posición del fantasma verticalmente DELTA-FANTASMA píxeles por segundo. Cuando sale de la imagen, reaparece en una coordenada x al azar sobre el margen superior.
+(define (mover-fantasma pos) (cond
+                               [(> (posn-y pos) ALTO) (make-posn (random 1 ANCHO) 0)]
+                               [else (make-posn (posn-x pos) (+ (posn-y pos) DELTA-FANTASMA))]
+                               )
+  )
 
 ;; reset-pos : Estado -> Estado
 ;Devuelve al jugador y al fantasma a sus posiciones originales y le resta una vida al jugador.
@@ -190,17 +205,30 @@
 ;; ==========
 
 ;; entre3? : Number Number Number -> Bool
-;determina si los números están en orden creciente
+;Recibe 3 Numbers. Determina si los números están en orden (estrictamente) creciente.
 (define (entre3? a b c) (and (<= a b) (<= b c)))
 
+(check-expect (entre3? 4 5 45) #t)
+(check-expect (entre3? 4 46 45) #f)
+(check-expect (entre3? 4 3 45) #f)
+(check-expect (entre3? -4 5 45) #t)
+
 ;; semiancho: Imagen -> Number
-;devuelve la mitad del ancho de una imagen
+;Recibe una imagen y devuelve la mitad de su ancho.
 (define (semiancho img) (/ (image-width img) 2))
 
+(check-expect (semiancho (circle 100 "solid" "blue")) 100)
+(check-expect (semiancho LABERINTO) (posn-x CENTRO))
+(check-expect (semiancho (rectangle 700 20 "solid" "brown")) 350)
+
 ;; semialto: Imagen -> Number
-;devuelve la mitad del alto de una imagen
+;Recibe una imagen y devuelve la mitad de su altura.
 (define (semialto img) (/ (image-height img) 2))
-  
+
+(check-expect (semialto (circle 100 "solid" "blue")) 100)
+(check-expect (semialto LABERINTO) (posn-y CENTRO))
+(check-expect (semialto (rectangle 700 20 "solid" "brown")) 10)
+
 ;; dentro-escena? : Posn Imagen -> Boolean
 ; Toma una posición y una imagen y devuelve #true si la imagen en dicha posición se encuentra dentro de la escena.
 (define (dentro-escena? pos img) (and (entre3? (semiancho img) (posn-x pos) (- ANCHO (semiancho img))) (entre3? (semialto img) (posn-y pos) (- ALTO (semialto img)))) )
@@ -227,12 +255,10 @@
 ;; ==============
 
 ;; manejador-tick : Estado -> Estado
-; Toma un estado y devuelve otro, actualizando el tiempo restante en una unidad menos por cada tick.
-
-
+;
 (define (manejador-tick e) (cond
                              [(interseca-fantasma? e) (reset-pos e)]
-                             [else (actualizar-tiempo (- (estado-tiempo e ) 1) e)]
+                             [else (actualizar-tiempo (- (estado-tiempo (actualizar-fantasma (mover-fantasma (estado-fantasma e)) e) ) 1) e)]
                              )
   )
 
