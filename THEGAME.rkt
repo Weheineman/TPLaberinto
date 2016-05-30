@@ -7,10 +7,10 @@
 
 ;; Definiciones principales:
 ;; ========================
-(define LABERINTO (bitmap "laberinto.png"))
-(define FANTASMA (bitmap "fantasma.png"))
+(define LABERINTO (bitmap "laberinto.png")) ;imagen del laberinto
+(define FANTASMA (bitmap "fantasma.png")) ;imagen del fantasma
 ;(define JUGADOR (bitmap "dorita.png"))
-(define JUGADOR (circle 10 "solid" "gray"))
+(define JUGADOR (circle 10 "solid" "gray")) ;imagen que representa al jugador
 (define OBJETIVO (circle 10 "solid" "blue")) ;imagen que representa el objetivo
 (define ALTO (image-height LABERINTO)) ;altura de la ventana
 (define ANCHO (image-width LABERINTO)) ;ancho de la ventana
@@ -30,44 +30,68 @@
 
 ;; Estado global del programa:
 ;; ==========================
-; state se compone de dos posn: las posiciones en pantalla del jugador y el enemigo respectivamente, y de un int que representa la cant. de ticks desde que comenzó el juego.
- (define-struct estado [jugador fantasma vidas tiempo])
-
-
+;jugador es un posn que representa la posición del jugador en escena
+;fantasma es un posn que representa la posición del fantasma en escena
+;vidas es un Number que contiene la cantidad de intentos restantes del jugador
+;tiempo es un Number que contiene la cantidad de ticks de tiempo que tiene el jugador para lograr su objetivo
+ (define-struct estado [jugador fantasma vidas tiempo] #:transparent)
 
 
 ;; actualizar-tiempo : Number Estado -> Estado
-;reemplaza el tiempo del estado por el número recibido
+;devuelve un estado igual al que recibe, pero reemplazando el campo tiempo por el Number recibido
 (define (actualizar-tiempo n e)
   (struct-copy estado e [tiempo n]))
 
+(check-expect (actualizar-tiempo 0 (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado (make-posn 10 10) (make-posn 23 20) 2 0) )
+(check-expect (actualizar-tiempo 10 (make-estado POS-TIEMPO POS-INICIAL 19 97) ) (make-estado POS-TIEMPO POS-INICIAL 19 10) )
+(check-expect (actualizar-tiempo -99 (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) ) (make-estado (make-posn 0 0) (make-posn 42 0) 999 -99) )
+
 ;; actualizar-vidas : Number Estado -> Estado
-;cambia el numero de vidas del estado por el número recibido
+;devuelve un estado igual al que recibe, pero reemplazando el campo vidas por el Number recibido
 (define (actualizar-vidas n e)
   (struct-copy estado e [vidas n]))
 
 (check-expect (actualizar-vidas 0 (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado (make-posn 10 10) (make-posn 23 20) 0 420 ) )
-(check-expect (make-estado POS-INICIAL POS-OBJETIVO 0 100) (make-estado POS-INICIAL POS-OBJETIVO 0 100))
+(check-expect (actualizar-vidas 3 (make-estado POS-TIEMPO POS-INICIAL 19 97) ) (make-estado POS-TIEMPO POS-INICIAL 3 97) )
+(check-expect (actualizar-vidas -5 (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado (make-posn 10 10) (make-posn 23 20) -5 420 ) )
 
 ;; actualizar-fantasma : Posn Estado -> Estado
-;reemplaza la posición del fantasma del estado por el número recibido
+;devuelve un estado igual al que recibe, pero reemplazando el campo fantasma por el posn recibido
 (define (actualizar-fantasma n e)
   (struct-copy estado e [fantasma n]))
 
+(check-expect (actualizar-fantasma POS-INICIAL (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado (make-posn 10 10) POS-INICIAL 2 420 ) )
+(check-expect (actualizar-fantasma POS-OBJETIVO (make-estado POS-TIEMPO POS-INICIAL 19 97) ) (make-estado POS-TIEMPO POS-OBJETIVO 19 97) )
+(check-expect (actualizar-fantasma (make-posn 50 80) (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado (make-posn 10 10) (make-posn 50 80) 2 420 ) )
+
 ;; actualizar-jugador : Posn Estado -> Estado
-;reemplaza la posición del jugador por la posición recibida
+;devuelve un estado igual al que recibe, pero reemplazando el campo jugador por el posn recibido
 (define (actualizar-jugador p e)
   (struct-copy estado e [jugador p]))
+
+(check-expect (actualizar-tiempo POS-INICIAL (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) ) (make-estado POS-INICIAL (make-posn 23 20) 2 420 ) )
+(check-expect (actualizar-tiempo POS-OBJETIVO (make-estado POS-TIEMPO POS-INICIAL 19 97) ) (make-estado POS-OBJETIVO POS-INICIAL 19 97) )
+(check-expect (actualizar-tiempo (make-posn 50 80) (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) ) (make-estado (make-posn 50 80) (make-posn 42 0) 999 0) )
+
 
 ;; Imprimir en la pantalla:
 ;; =======================
 ;; dibujar-imagen : Imagen Posn Imagen -> Imagen
-;dibuja la primara imagen sobre la segunda, en la posición indicada
+;Recibe una imagen, una posición y una segunda imagen. Devuelve una imagen compuesta por la primera, colocada sobre la segunda en la posición elegida.
 (define (dibujar-imagen img pos fondo) (place-image img (posn-x pos) (posn-y pos) fondo ))
 
+(check-expect (dibujar-imagen (circle 10 "solid" "blue") (make-posn 10 10) (rectangle 20 20 "solid" "red")) (place-image (circle 10 "solid" "blue") 10 10 (rectangle 20 20 "solid" "red")))
+(check-expect (dibujar-imagen (circle 15 "solid" "red") (make-posn 2 1) (rectangle 25 78 "solid" "blue")) (place-image (circle 15 "solid" "red") 2 1 (rectangle 25 78 "solid" "blue")))
+(check-expect (dibujar-imagen JUGADOR (make-posn 10 10) FANTASMA) (place-image JUGADOR 10 10 FANTASMA))
+
+
 ;; dibujar-laberinto : Imagen -> Imagen
-;dibuja el laberinto sobre un fondo
+;Dibuja el laberinto definido anteriormente como LABERINTO centrado sobre un fondo (un rectángulo vacío)
 (define (dibujar-laberinto fondo) (dibujar-imagen LABERINTO CENTRO fondo))
+
+(check-expect (dibujar-laberinto (rectangle ANCHO ALTO "solid" "black")) (place-image LABERINTO (/ ANCHO 2) (/ ALTO 2) (rectangle ANCHO ALTO "solid" "black")))
+(check-expect (dibujar-laberinto (circle 1000 "solid" "blue")) (place-image LABERINTO (/ ANCHO 2) (/ ALTO 2) (circle 1000 "solid" "blue")) )
+(check-expect (dibujar-laberinto FANTASMA) (place-image LABERINTO (posn-x CENTRO) (posn-y CENTRO) FANTASMA))
 
 ;; dibujar-jugador : Estado Imagen -> Imagen
 ;dibuja al jugador sobre la imagen en su posición actual
