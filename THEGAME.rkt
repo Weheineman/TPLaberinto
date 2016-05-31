@@ -9,7 +9,7 @@
 ;; * * * * * * * * * * * * * * * * * * * * * * * *
 
 ;; Román Castellarin, C-6532/3
-;; Gianni Weinand, W-????/?
+;; Gianni Weinand, W-0528/2
 
 ;; ============================================= ;;
 
@@ -134,22 +134,30 @@
 ; Toma un estado y un fondo y devuelve la imagen que se obtiene de dibujar el tiempo restante en ticks, sobre el fondo, en la posición predeterminada por POS-TIEMPO.
 (define (dibujar-tiempo e fondo) (dibujar-imagen (text (string-append "Tiempo: " (number->string (estado-tiempo e))) 16 "indigo") POS-TIEMPO fondo))
 ; Ejemplos:
-;(check-expect (dibujar-tiempo (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) LABERINTO) (place-image ) )
-;(check-expect (dibujar-tiempo (make-estado POS-TIEMPO POS-INICIAL 19 97) JUGADOR) (make-estado POS-TIEMPO POS-INICIAL 19 10) )
-;(check-expect (dibujar-tiempo (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) (circle 50 "solid" "red")) (make-estado (make-posn 0 0) (make-posn 42 0) 999 -99) )
+(check-expect (dibujar-tiempo (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) LABERINTO) (place-image (text "Tiempo: 420" 16 "indigo") (posn-x POS-TIEMPO) (posn-y POS-TIEMPO) LABERINTO) )
+(check-expect (dibujar-tiempo (make-estado POS-TIEMPO POS-INICIAL 19 97) JUGADOR) (place-image (text "Tiempo: 97" 16 "indigo")  (posn-x POS-TIEMPO) (posn-y POS-TIEMPO) JUGADOR) )
+(check-expect (dibujar-tiempo (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) (circle 200 "solid" "blue")) (place-image (text "Tiempo: 0" 16 "indigo") (posn-x POS-TIEMPO) (posn-y POS-TIEMPO) (circle 200 "solid" "blue")) )
 
 ;; dibujar-vidas : Estado Imagen -> Imagen
 ; Toma un estado y un fondo y devuelve la imagen que se obtiene de dibujar la cantidad de vidas del jugador sobre el fondo.
 (define (dibujar-vidas e fondo) (dibujar-imagen (text (string-append "Vidas: " (number->string (estado-vidas e))) 16 "indigo") POS-VIDAS fondo) )
+;Ejemplos:
+(check-expect (dibujar-vidas (make-estado (make-posn 10 10) (make-posn 23 20) 2 420 ) LABERINTO) (place-image (text "Vidas: 2" 16 "indigo") (posn-x POS-VIDAS) (posn-y POS-VIDAS) LABERINTO) )
+(check-expect (dibujar-vidas (make-estado POS-VIDAS POS-INICIAL 19 97) JUGADOR) (place-image (text "Vidas: 19" 16 "indigo")  (posn-x POS-VIDAS) (posn-y POS-VIDAS) JUGADOR) )
+(check-expect (dibujar-vidas (make-estado (make-posn 0 0) (make-posn 42 0) 999 0) (circle 200 "solid" "blue")) (place-image (text "Vidas: 999" 16 "indigo") (posn-x POS-VIDAS) (posn-y POS-VIDAS) (circle 200 "solid" "blue")) )
+
 
 ;; dibujar-texto : String Imagen -> Imagen
 ; Toma un texto y un fondo y devuelve la imagen que se obtiene de imprimir el texto recibido centrado sobre el fondo.
 (define (dibujar-texto s fondo) (dibujar-imagen (text s TEXTO-FUENTE TEXTO-COLOR) CENTRO fondo))
+;Ejemplos:
+(check-expect (dibujar-texto "Hello World!" LABERINTO) (place-image (text "Hello World!" TEXTO-FUENTE TEXTO-COLOR) (posn-x CENTRO) (posn-y CENTRO) LABERINTO))
+(check-expect (dibujar-texto "Aguante C++ :)" JUGADOR) (place-image (text "Aguante C++ :)" TEXTO-FUENTE TEXTO-COLOR) (posn-x CENTRO) (posn-y CENTRO) JUGADOR))
 
 ;; dibujar-fantasma : Estado Imagen -> Imagen
 ; Toma un estado y un fondo y devuelve la imagen que se obtiene de dibujar al enemigo sobre el fondo en la posición indicada por el campo fantasma del estado.
 (define (dibujar-fantasma e fondo) (dibujar-imagen FANTASMA (estado-fantasma e) fondo) )
-
+;Ejemplos:
 (check-expect (dibujar-fantasma (make-estado POS-TIEMPO POS-OBJETIVO 100 10) (rectangle ANCHO ALTO "solid" "black")) (place-image FANTASMA (posn-x POS-OBJETIVO) (posn-y POS-OBJETIVO) (rectangle ANCHO ALTO "solid" "black")))
 (check-expect (dibujar-fantasma (make-estado POS-OBJETIVO (make-posn 10 10) 100 10) LABERINTO) (place-image FANTASMA 10 10 LABERINTO))
 (check-expect (dibujar-fantasma (make-estado (make-posn 15 25) (make-posn 12 13) 100 10) FANTASMA) (place-image FANTASMA 12 13 FANTASMA))
@@ -158,6 +166,10 @@
 ;; fondo : Color -> Imagen
 ; Toma un color y devuelve un fondo del color indicado.
 (define (fondo color) (empty-scene ANCHO ALTO color))
+;Ejemplos:
+(check-expect (fondo "blue") (empty-scene ANCHO ALTO "blue"))
+(check-expect (fondo "red") (empty-scene ANCHO ALTO "red"))
+(check-expect (fondo "pink") (empty-scene ANCHO ALTO "pink"))
 
 ;; imprimir : Estado Color -> Imagen
 ; Toma un estado y un color, y devuelve la imagen que se obtiene de dibujar los componentes del juego sobre un fondo del color indicado.
@@ -199,19 +211,19 @@
 (define (move-up pos dist) (if (posible-pos? (make-posn (posn-x pos) (- (posn-y pos) dist)) JUGADOR) (make-posn (posn-x pos) (- (posn-y pos) dist)) pos))
 
 ;; move-down : Posn Number -> Posn
-;Si es posible, mueve al jugador hacia abajo una cantidad de píxeles igual al número recibido.
+; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia abajo dist unidades, sino devuelve pos tal cual estaba.
 (define (move-down pos dist) (if (posible-pos? (make-posn (posn-x pos) (+ (posn-y pos) dist)) JUGADOR) (make-posn (posn-x pos) (+ (posn-y pos) dist)) pos))
 
 ;; move-left : Posn Number -> Posn
-;Si es posible, mueve al jugador hacia la izquierda una cantidad de píxeles igual al número recibido.
+; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia la izquierda dist unidades, sino devuelve pos tal cual estaba.
 (define (move-left pos dist) (if (posible-pos? (make-posn (- (posn-x pos) dist) (posn-y pos)) JUGADOR) (make-posn (- (posn-x pos) dist) (posn-y pos)) pos))
 
 ;; move-right : Posn Number -> Posn
-;Si es posible, mueve al jugador hacia la derecha una cantidad de píxeles igual al número recibido.
+; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia la derecha dist unidades, sino devuelve pos tal cual estaba.
 (define (move-right pos dist) (if (posible-pos? (make-posn (+ (posn-x pos) dist) (posn-y pos)) JUGADOR) (make-posn (+ (posn-x pos) dist) (posn-y pos)) pos))
 
 ;; mover-fantasma : Posn -> Posn
-;Mueve la posición del fantasma verticalmente DELTA-FANTASMA píxeles por segundo. Cuando sale de la imagen, reaparece en una coordenada x al azar sobre el margen superior.
+; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia arriba dist unidades, sino devuelve pos tal cual estaba.
 (define (mover-fantasma pos) (cond
                                [(> (posn-y pos) ALTO) (make-posn (random 1 ANCHO) 0)]
                                [else (make-posn (posn-x pos) (+ (posn-y pos) DELTA-FANTASMA))]
@@ -221,6 +233,11 @@
 ;; reset-pos : Estado -> Estado
 ; Toma un estado y devuelve otro estado actualizando al jugador y al fantasma a sus posiciones originales y restándosele una vida al jugador.
 (define (reset-pos e) (make-estado POS-INICIAL POS-FANTASMA (- (estado-vidas e) 1) (estado-tiempo e)))
+;Ejemplos:
+(check-expect (reset-pos (make-estado POS-INICIAL POS-INICIAL 3 1500)) (make-estado POS-INICIAL POS-FANTASMA 2 1500))
+(check-expect (reset-pos (make-estado (make-posn 0 0) (make-posn 1000 1000) 1 1500)) (make-estado POS-INICIAL POS-FANTASMA 0 1500))
+(check-expect (reset-pos (make-estado (make-posn 30 30) (make-posn 30 30) 30 1500)) (make-estado POS-INICIAL POS-FANTASMA 29 1500))
+
 
 ;; Auxiliares:
 
@@ -255,6 +272,7 @@
 ;; dentro-escena? : Posn Imagen -> Boolean
 ; Toma una posición y una imagen y devuelve #true si la imagen en dicha posición se encuentra dentro de la escena.
 (define (dentro-escena? pos img) (and (entre3? (semiancho img) (posn-x pos) (- ANCHO (semiancho img))) (entre3? (semialto img) (posn-y pos) (- ALTO (semialto img)))) )
+
 
 
 ;; posible-pos? : Posn Imagen -> Boolean
@@ -292,16 +310,27 @@
 (define (interseca-fantasma? e) (interseca? (estado-jugador e) JUGADOR (estado-fantasma e) FANTASMA))
 ; Ejemplos:
 (check-expect (interseca-fantasma? (make-estado POS-INICIAL POS-INICIAL 3 1500)) #t)
+(check-expect (interseca-fantasma? (make-estado (make-posn 0 0) (make-posn 1000 1000) 3 1500)) #f)
+(check-expect (interseca-fantasma? (make-estado (make-posn 30 30) (make-posn 30 30) 3 1500)) #t)
 
 ;; objetivo? : Estado -> Boolean
 ; Toma un estado y devuelve #true si el jugador llegó al objetivo y #false en caso contrario.
 (define (objetivo? e) (interseca? (estado-jugador e) JUGADOR POS-OBJETIVO OBJETIVO))
+;Ejemplos:
+(check-expect (objetivo? (make-estado (make-posn -1000 -1000) POS-OBJETIVO 100 10)) #f)
+(check-expect (objetivo? (make-estado POS-OBJETIVO (make-posn 10 10) 100 10)) #t)
+(check-expect (objetivo? (make-estado (make-posn 100000 100000) (make-posn 12 13) 100 10)) #f)
 
 
 ;; fin? : Estado -> Boolean
 ; Toma un estado y devuelve #true si el juego terminó y #false de otro modo.
 ; El juego se considera terminado si se alcanzó el objetivo o se acabó el tiempo.
 (define (fin? e ) (or (objetivo? e) (<= (estado-tiempo e) 0) (= (estado-vidas e) 0)))
+;Ejemplos:
+(check-expect (fin? (make-estado POS-OBJETIVO POS-INICIAL 3 1500)) #t)
+(check-expect (fin? (make-estado (make-posn 0 0) (make-posn 1000 1000) 3 0)) #t)
+(check-expect (fin? (make-estado (make-posn 30 30) (make-posn 30 30) 3 1500)) #f)
+(check-expect (fin? (make-estado POS-INICIAL POS-INICIAL 3 1500)) #f)
 
 
 ;; estado-inicial : Estado
