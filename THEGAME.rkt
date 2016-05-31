@@ -183,6 +183,7 @@
 
 ;; imprimir : Estado Color -> Imagen
 ; Toma un estado y un color, y devuelve la imagen que se obtiene de dibujar los componentes del juego sobre un fondo del color indicado.
+; Notemos que la salida de esta función depende del mapa, se han realizado las pruebas correspondientes en los tres mapas de ejemplo y funciona como es esperado en todos, de acá se concluye que la estructuración es correcta. Asímismo, las subrutinas ya fueron chequeadas en sus sendos sitios de declaración.
 (define (imprimir e color)
   (dibujar-vidas
    e
@@ -219,18 +220,30 @@
 ;; move-up : Posn Number -> Posn
 ; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia arriba dist unidades, sino devuelve pos tal cual estaba.
 (define (move-up pos dist) (if (posible-pos? (make-posn (posn-x pos) (- (posn-y pos) dist)) JUGADOR) (make-posn (posn-x pos) (- (posn-y pos) dist)) pos))
+;Ejemplos:
+; Notemos que la salida de esta función depende del mapa, se han realizado las pruebas correspondientes en los tres mapas de ejemplo y funciona como es esperado en todos, de acá se concluye que la estructuración es correcta. Asímismo, las subrutinas ya fueron chequeadas en sus sendos sitios de declaración.
+(check-expect (move-up CENTRO ALTO) CENTRO)
 
 ;; move-down : Posn Number -> Posn
 ; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia abajo dist unidades, sino devuelve pos tal cual estaba.
 (define (move-down pos dist) (if (posible-pos? (make-posn (posn-x pos) (+ (posn-y pos) dist)) JUGADOR) (make-posn (posn-x pos) (+ (posn-y pos) dist)) pos))
+;Ejemplos:
+; Notemos que la salida de esta función depende del mapa, se han realizado las pruebas correspondientes en los tres mapas de ejemplo y funciona como es esperado en todos, de acá se concluye que la estructuración es correcta. Asímismo, las subrutinas ya fueron chequeadas en sus sendos sitios de declaración.
+(check-expect (move-down CENTRO ALTO) CENTRO)
 
 ;; move-left : Posn Number -> Posn
 ; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia la izquierda dist unidades, sino devuelve pos tal cual estaba.
 (define (move-left pos dist) (if (posible-pos? (make-posn (- (posn-x pos) dist) (posn-y pos)) JUGADOR) (make-posn (- (posn-x pos) dist) (posn-y pos)) pos))
+;Ejemplos:
+; Notemos que la salida de esta función depende del mapa, se han realizado las pruebas correspondientes en los tres mapas de ejemplo y funciona como es esperado en todos, de acá se concluye que la estructuración es correcta. Asímismo, las subrutinas ya fueron chequeadas en sus sendos sitios de declaración.
+(check-expect (move-left CENTRO ANCHO) CENTRO)
 
 ;; move-right : Posn Number -> Posn
 ; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia la derecha dist unidades, sino devuelve pos tal cual estaba.
 (define (move-right pos dist) (if (posible-pos? (make-posn (+ (posn-x pos) dist) (posn-y pos)) JUGADOR) (make-posn (+ (posn-x pos) dist) (posn-y pos)) pos))
+;Ejemplos:
+; Notemos que la salida de esta función depende del mapa, se han realizado las pruebas correspondientes en los tres mapas de ejemplo y funciona como es esperado en todos, de acá se concluye que la estructuración es correcta. Asímismo, las subrutinas ya fueron chequeadas en sus sendos sitios de declaración.
+(check-expect (move-right CENTRO ANCHO) CENTRO)
 
 ;; mover-fantasma : Posn -> Posn
 ; Toma una posición pos y un desplazamiento dist y, si es posible, devuelve la posición que se obtiene de mover al jugador hacia arriba dist unidades, sino devuelve pos tal cual estaba.
@@ -239,6 +252,10 @@
                                [else (make-posn (posn-x pos) (+ (posn-y pos) DELTA-FANTASMA))]
                                )
   )
+;Ejemplos:
+;Es complejo realizar casos de prueba en los cuales el fantasma está por debajo de las escena pues no se conoce de antemano el valor que tomará (random 1 ANCHO). Su funcionamiento se probó correcto mediante la ejecución del programa.
+(check-expect (mover-fantasma (make-posn (/ ANCHO 2) 0)) (make-posn (/ ANCHO 2) DELTA-FANTASMA))
+
 
 ;; reset-pos : Estado -> Estado
 ; Toma un estado y devuelve otro estado actualizando al jugador y al fantasma a sus posiciones originales y restándosele una vida al jugador.
@@ -282,12 +299,15 @@
 ;; dentro-escena? : Posn Imagen -> Boolean
 ; Toma una posición y una imagen y devuelve #true si la imagen en dicha posición se encuentra dentro de la escena.
 (define (dentro-escena? pos img) (and (entre3? (semiancho img) (posn-x pos) (- ANCHO (semiancho img))) (entre3? (semialto img) (posn-y pos) (- ALTO (semialto img)))) )
-
-
+;Ejemplos:
+(check-expect (dentro-escena? (make-posn -100 -100) JUGADOR) #f)
+(check-expect (dentro-escena? (make-posn 1 1) (circle 1 "solid" "red")) #t)
 
 ;; posible-pos? : Posn Imagen -> Boolean
 ; Toma una posición y una imagen y devuelve #true si la imagen en esa posición se encuentra dentro de la escena y no atravesando las paredes del laberinto, o #false en caso contrario.
 (define (posible-pos? pos img) (and (dentro-escena? pos img) (not (interseca? pos img CENTRO LABERINTO)) ) )
+;Ejemplos:
+; Notemos que la salida de esta función depende del mapa, se han realizado las pruebas correspondientes en los tres mapas de ejemplo y funciona como es esperado en todos, de acá se concluye que la estructuración es correcta. Asímismo, las subrutinas ya fueron chequeadas en sus sendos sitios de declaración.
 
 ;; Eventos del teclado:
 ;; ===================
