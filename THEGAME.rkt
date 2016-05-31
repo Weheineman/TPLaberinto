@@ -23,9 +23,13 @@
 ; - Las distancias y las fuentes están medidas en píxeles.
 ; - Los intervalos de tiempo están medidas en ticks.
 ; - Las coordenadas se miden desde la esquina superior izquierda hacia la inferior derecha de la ventana.
+; - Para probar distintos mapas descomentar las líneas que dicen "Mapa: x" donde x es el nivel que se quiere jugar y comentar las que dicen "Mapa: y" con y != x.
+;    - Estas líneas son LABERINTO, POS-INICIAL, POS-OBJETIVO, y también TIEMPO-INICIAL.
 
 ; Definiciones asociadas a la ventana de visualización:
-(define LABERINTO (bitmap "laberinto.png"))             ;imagen del laberinto.
+;(define LABERINTO (bitmap "laberinto.png"))             ; - Mapa: 1, imagen del laberinto.
+;(define LABERINTO (bitmap "laberinto2.png"))            ; - Mapa: 2, imagen del laberinto.
+(define LABERINTO (bitmap "laberinto3.png"))            ; - Mapa: 3, imagen del laberinto.
 (define ALTO (image-height LABERINTO))                  ;altura de la ventana.
 (define ANCHO (image-width LABERINTO))                  ;ancho de la ventana.
 (define CENTRO (make-posn (/ ANCHO 2) (/ ALTO 2)))      ;centro de la pantalla.
@@ -39,14 +43,20 @@
 (define FANTASMA (bitmap "fantasma.png"))               ;imagen del fantasma.
 (define JUGADOR (bitmap "personaje.png"))               ;imagen que representa al jugador.
 (define OBJETIVO (bitmap "cherry.png"))                 ;imagen que representa el objetivo.
-(define POS-INICIAL (make-posn 15 35))                  ;posición inicial del jugador.
+;(define POS-INICIAL (make-posn 15 35))                  ; - Mapa: 1, posición inicial del jugador.
+;(define POS-INICIAL (make-posn 310 650))                ; - Mapa: 2, posición inicial del jugador.
+(define POS-INICIAL (make-posn 470 20))                 ; - Mapa: 3, posición inicial del jugador.
 (define POS-FANTASMA (make-posn ANCHO ALTO))            ;posición inicial del enemigo (sólo sirve para forzar al motor a generar una aleatoria inmediatamente).
-(define POS-OBJETIVO (make-posn 930 460))               ;posición del objetivo, fija.
+;(define POS-OBJETIVO (make-posn 930 460))               ; - Mapa: 1, posición del objetivo, fija.
+;(define POS-OBJETIVO CENTRO)                            ; - Mapa: 2, posición del objetivo, fija.
+(define POS-OBJETIVO (make-posn 470 100))               ; - Mapa: 3, posición del objetivo, fija.
 (define DELTA-PLAYER 10)                                ;cantidad de píxeles que se mueve el jugador por tick.
 (define DELTA-FANTASMA 5)                               ;cantidad de píxeles que se mueve el fantasma por tick.
 
 ; Definiciones asociadas al motor del juego:
-(define TIEMPO-INICIAL 1500)                            ;tiempo que tiene el jugador llegar al objetivo.
+;(define TIEMPO-INICIAL 1500)                            ; - Mapa: 1, tiempo que tiene el jugador llegar al objetivo.
+;(define TIEMPO-INICIAL 6400)                            ; - Mapa: 2, tiempo que tiene el jugador llegar al objetivo.
+(define TIEMPO-INICIAL 12800)                           ; - Mapa: 3, tiempo que tiene el jugador llegar al objetivo.
 (define VIDAS-INICIAL 3)                                ;cantidad de vidas que tiene el jugador al comenzar el juego.
 
 ;; Estado global del programa:
